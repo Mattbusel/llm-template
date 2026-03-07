@@ -95,7 +95,7 @@ std::vector<Template::Node> Template::parse(const std::string& tmpl) {
 
     // Helper: collect nodes until we hit {{/tag}}
     std::function<std::vector<Node>(size_t&, const std::string&)> parse_until =
-        [&](size_t& p, const std::string& end_tag) -> std::vector<Node> {
+        [&](size_t& p, const std::string& /*end_tag*/) -> std::vector<Node> {
         std::vector<Node> result;
         while (p < tmpl.size()) {
             auto tag_start = tmpl.find("{{", p);
