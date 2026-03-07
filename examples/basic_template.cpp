@@ -3,27 +3,27 @@
 #include <iostream>
 
 int main() {
-    llm::Template t("Hello, {{name}}! You have {{count}} new messages.");
+    llm::Template tmpl("Hello, {{name}}! You are a {{role}} assistant. Today is {{date}}.");
 
     llm::TemplateVars vars;
-    vars["name"]  = "Alice";
-    vars["count"] = "3";
+    vars["name"] = "Claude";
+    vars["role"] = "helpful";
+    vars["date"] = "2026-03-06";
 
-    std::string result = t.render(vars);
-    std::cout << result << "\n";
+    std::cout << tmpl.render(vars) << "\n\n";
 
-    // Show which variables the template uses
-    auto v = t.variables();
-    std::cout << "Variables: ";
-    for (const auto& var : v) std::cout << var << " ";
-    std::cout << "\n";
-
-    // Show missing variables
+    // Show missing vars detection
     llm::TemplateContext ctx;
-    ctx.vars["name"] = "Bob"; // count is missing
-    auto missing = t.missing_vars(ctx);
-    std::cout << "Missing: ";
-    for (const auto& m : missing) std::cout << m << " ";
+    ctx.vars["name"] = "Claude";
+    // missing: role, date
+    auto missing = tmpl.missing_vars(ctx);
+    std::cout << "Missing vars: ";
+    for (const auto& v : missing) std::cout << v << " ";
+    std::cout << "\n\n";
+
+    // List all variables
+    std::cout << "Variables in template: ";
+    for (const auto& v : tmpl.variables()) std::cout << v << " ";
     std::cout << "\n";
 
     return 0;

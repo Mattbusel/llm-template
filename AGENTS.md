@@ -1,16 +1,14 @@
 # AGENTS.md — llm-template
-
 ## Purpose
-Single-header C++ library. Everything lives in `include/llm_template.hpp`.
-
+Single-header C++ prompt templating: variable substitution, loops, conditionals, token-aware truncation.
+## Architecture
+Everything in `include/llm_template.hpp`. Guard: `#ifdef LLM_TEMPLATE_IMPLEMENTATION`. No external deps.
 ## Build
-```bash
 cmake -B build && cmake --build build
-```
-
-## Rules
-- Single header. Never split `include/llm_template.hpp`.
-- No external deps (libcurl allowed only where needed for HTTP).
-- All public API in namespace `llm`.
-- C++17, zero warnings with -Wall -Wextra.
-- Implementation guard: `#ifdef LLM_TEMPLATE_IMPLEMENTATION`
+## Syntax
+- {{var}} — variable substitution
+- {{#list}}...{{/list}} — loop over list of maps
+- {{#flag}}...{{/flag}} — conditional block
+- {{!comment}} — ignored
+## Constraints
+Single header, no external deps, C++17, namespace llm.

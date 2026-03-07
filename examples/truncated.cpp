@@ -3,16 +3,28 @@
 #include <iostream>
 
 int main() {
-    llm::Template t("Summarize: {{document}}\n\nAnswer in one sentence.");
+    llm::Template tmpl(
+        "System: You are a helpful assistant.\n\n"
+        "Context:\n{{context}}\n\n"
+        "Question: {{question}}\n\n"
+        "Answer concisely."
+    );
 
     llm::TemplateContext ctx;
-    // Large document
-    ctx.vars["document"] = std::string(5000, 'x');
+    ctx.vars["question"] = "What are the key points?";
+    // Generate a long context
+    std::string long_context;
+    for (int i = 0; i < 100; ++i)
+        long_context += "Sentence " + std::to_string(i) + " of the long document. This is filler text. ";
+    ctx.vars["context"] = long_context;
 
-    size_t max_tokens = 100;
-    std::string result = t.render_truncated(ctx, max_tokens);
-    std::cout << "Truncated to ~" << max_tokens << " tokens ("
-              << result.size() << " chars):\n";
-    std::cout << result.substr(0, 120) << "...\n";
+    std::cout << "Full render: " << tmpl.render(ctx).size() << " chars ("
+              << tmpl.render(ctx).size()/4 << " est. tokens)\n";
+
+    std::string truncated = tmpl.render_truncated(ctx, 200);
+    std::cout << "Truncated to 200 tokens: " << truncated.size() << " chars ("
+              << truncated.size()/4 << " est. tokens)\n\n";
+    std::cout << truncated << "\n";
+
     return 0;
 }

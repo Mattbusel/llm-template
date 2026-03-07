@@ -1,85 +1,77 @@
 # llm-template
 
-Mustache-style prompt templating in C++. Variable substitution, loops, conditionals, partials, token-aware truncation. One header.
+Prompt templating for C++. Variable substitution, loops, conditionals, token-aware truncation. Single header.
 
-![C++17](https://img.shields.io/badge/C%2B%2B-17-blue)
-![License: MIT](https://img.shields.io/badge/License-MIT-green)
-![Single Header](https://img.shields.io/badge/library-single--header-orange)
+![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
+![License MIT](https://img.shields.io/badge/license-MIT-green.svg)
+![Single Header](https://img.shields.io/badge/single-header-orange.svg)
 
----
-
-## 30-second quickstart
+## Quickstart
 
 ```cpp
 #define LLM_TEMPLATE_IMPLEMENTATION
 #include "llm_template.hpp"
 
-int main() {
-    llm::Template tmpl(
-        "You are a {{role}}. Answer: {{question}}\n"
-        "{{#show_hint}}Hint: {{hint}}{{/show_hint}}"
-    );
+llm::Template tmpl("Hello {{name}}, you are a {{role}} assistant.");
 
-    llm::TemplateContext ctx;
-    ctx.vars["role"]     = "helpful assistant";
-    ctx.vars["question"] = "What is the boiling point of water?";
-    ctx.vars["hint"]     = "Think about standard pressure.";
-    ctx.flags["show_hint"] = true;
+llm::TemplateVars vars;
+vars["name"] = "Claude";
+vars["role"] = "helpful";
 
-    std::cout << tmpl.render(ctx) << "\n";
-}
+std::cout << tmpl.render(vars) << "\n";
+// Hello Claude, you are a helpful assistant.
 ```
-
----
 
 ## Installation
 
-```bash
-cp include/llm_template.hpp your-project/
-```
-
-No dependencies.
-
----
+Copy `include/llm_template.hpp`. No external dependencies.
 
 ## Syntax
 
 | Tag | Meaning |
 |-----|---------|
-| `{{variable}}` | Simple substitution |
-| `{{#list}}...{{/list}}` | Loop over a list |
-| `{{#flag}}...{{/flag}}` | Conditional block |
-| `{{>partial_name}}` | Include another template |
+| `{{variable}}` | String substitution |
+| `{{#list}}...{{/list}}` | Loop over list items; use `{{field}}` inside |
+| `{{#flag}}...{{/flag}}` | Render block only if flag is true |
 | `{{!comment}}` | Ignored |
 
-## API Reference
+## API
 
 ```cpp
-// Render with simple vars
-std::string out = tmpl.render({{"var", "value"}});
+// Simple render
+llm::Template tmpl("Hello {{name}}!");
+std::cout << tmpl.render({{"name", "Alice"}}) << "\n";
 
-// Full render with lists + flags
+// Full context: vars + lists + flags
 llm::TemplateContext ctx;
-ctx.vars["greeting"] = "Hello";
-ctx.lists["items"] = { {{"name","Alice"}}, {{"name","Bob"}} };
-ctx.flags["show_footer"] = true;
-std::string out = tmpl.render(ctx);
+ctx.vars["topic"]   = "recursion";
+ctx.flags["verbose"] = true;
+ctx.lists["examples"] = {
+    {{"code", "fib(n)"},  {"lang", "C++"}},
+    {{"code", "fact(n)"}, {"lang", "Python"}},
+};
+std::string prompt = tmpl.render(ctx);
 
-// Truncate to token budget (estimates 4 chars/token)
-std::string out = tmpl.render_truncated(ctx, 512);
+// Truncate to token budget
+std::string prompt = tmpl.render_truncated(ctx, /*max_tokens=*/512);
 
-// Introspect
-auto vars    = tmpl.variables();
-auto missing = tmpl.missing_vars(ctx);
+// Introspection
+auto vars    = tmpl.variables();        // all {{var}} names
+auto missing = tmpl.missing_vars(ctx);  // vars not in context
 
-// Registry for partials
+// Registry
 llm::TemplateRegistry reg;
-reg.add("header", "=== {{title}} ===\n");
-reg.add("main", "{{>header}}Body: {{body}}");
-auto out = reg.get("main").render({{"title","Hi"},{"body","World"}}, &reg);
+reg.add("system", "You are {{persona}}.");
+reg.load_file("rag", "prompts/rag.txt");
+std::cout << reg.get("system").render({{"persona","expert"}}) << "\n";
 ```
 
----
+## Examples
+
+- [`examples/basic_template.cpp`](examples/basic_template.cpp) — variable substitution, missing var detection
+- [`examples/loop_template.cpp`](examples/loop_template.cpp) — render a list of items
+- [`examples/truncated.cpp`](examples/truncated.cpp) — truncate a long context to token budget
+- [`examples/registry.cpp`](examples/registry.cpp) — load and use multiple named templates
 
 ## Building
 
@@ -88,28 +80,29 @@ cmake -B build && cmake --build build
 ./build/basic_template
 ./build/loop_template
 ./build/truncated
+./build/registry
 ```
 
----
+## Requirements
+
+C++17. No external dependencies.
 
 ## See Also
 
 | Repo | What it does |
 |------|-------------|
-| [llm-stream](https://github.com/Mattbusel/llm-stream) | Stream OpenAI & Anthropic responses token by token |
-| [llm-cache](https://github.com/Mattbusel/llm-cache) | Cache responses, skip redundant calls |
+| [llm-stream](https://github.com/Mattbusel/llm-stream) | Stream OpenAI & Anthropic responses |
+| [llm-retry](https://github.com/Mattbusel/llm-retry) | Retry + circuit breaker |
+| [llm-cache](https://github.com/Mattbusel/llm-cache) | LRU response cache |
 | [llm-cost](https://github.com/Mattbusel/llm-cost) | Token counting + cost estimation |
-| [llm-retry](https://github.com/Mattbusel/llm-retry) | Retry with backoff + circuit breaker |
-| [llm-format](https://github.com/Mattbusel/llm-format) | Structured output enforcement |
-| [llm-embed](https://github.com/Mattbusel/llm-embed) | Text embeddings + nearest-neighbor search |
-| [llm-pool](https://github.com/Mattbusel/llm-pool) | Concurrent request pool + rate limiting |
-| [llm-log](https://github.com/Mattbusel/llm-log) | Structured JSONL logger for LLM calls |
-| [llm-template](https://github.com/Mattbusel/llm-template) | Prompt templating with loops + conditionals |
+| [llm-format](https://github.com/Mattbusel/llm-format) | Structured output formatting |
+| [llm-embed](https://github.com/Mattbusel/llm-embed) | Text embeddings + vector search |
+| [llm-pool](https://github.com/Mattbusel/llm-pool) | Concurrent request pool |
+| [llm-log](https://github.com/Mattbusel/llm-log) | Structured JSONL logging |
+| [llm-template](https://github.com/Mattbusel/llm-template) | Prompt templating (this repo) |
 | [llm-agent](https://github.com/Mattbusel/llm-agent) | Tool-calling agent loop |
-| [llm-rag](https://github.com/Mattbusel/llm-rag) | Full RAG pipeline |
-| [llm-eval](https://github.com/Mattbusel/llm-eval) | Consistency and quality evaluation |
-
----
+| [llm-rag](https://github.com/Mattbusel/llm-rag) | Retrieval-augmented generation |
+| [llm-eval](https://github.com/Mattbusel/llm-eval) | Evaluation + consistency scoring |
 
 ## License
 

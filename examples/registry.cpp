@@ -5,33 +5,21 @@
 int main() {
     llm::TemplateRegistry reg;
 
-    // Register a partial — reusable header
-    reg.add("header", "=== {{title}} ===\nDate: {{date}}\n\n");
+    reg.add("greeting", "Hello, {{name}}! Welcome to {{service}}.");
+    reg.add("qa",       "Q: {{question}}\nA: {{answer}}");
+    reg.add("system",   "You are {{persona}}. {{instructions}}");
 
-    // Register a template that uses the partial
-    reg.add("report",
-        "{{>header}}"
-        "Summary: {{summary}}\n\n"
-        "{{#show_details}}"
-        "Details:\n{{details}}\n"
-        "{{/show_details}}"
-        "End of report."
-    );
+    llm::TemplateVars v1; v1["name"]="Alice"; v1["service"]="LLM Suite";
+    std::cout << reg.get("greeting").render(v1) << "\n";
 
-    llm::TemplateContext ctx;
-    ctx.vars["title"]   = "Monthly Analysis";
-    ctx.vars["date"]    = "2026-03-06";
-    ctx.vars["summary"] = "Overall performance improved 12% month-over-month.";
-    ctx.vars["details"] = "Region A: +18%\nRegion B: +5%\nRegion C: -2%";
-    ctx.flags["show_details"] = true;
+    llm::TemplateVars v2; v2["question"]="What is C++?"; v2["answer"]="A fast systems language.";
+    std::cout << reg.get("qa").render(v2) << "\n";
 
-    // render() with registry so {{>header}} partial resolves
-    std::string output = reg.get("report").render(ctx, &reg);
-    std::cout << output << "\n";
+    llm::TemplateVars v3; v3["persona"]="an expert engineer"; v3["instructions"]="Be concise and precise.";
+    std::cout << reg.get("system").render(v3) << "\n";
 
-    ctx.flags["show_details"] = false;
-    std::cout << "--- Without details ---\n";
-    std::cout << reg.get("report").render(ctx, &reg) << "\n";
+    std::cout << "\nRegistry has 'greeting': " << reg.has("greeting") << "\n";
+    std::cout << "Registry has 'missing':  " << reg.has("missing")  << "\n";
 
     return 0;
 }

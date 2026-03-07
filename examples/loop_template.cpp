@@ -3,25 +3,21 @@
 #include <iostream>
 
 int main() {
-    // Loop template
-    llm::Template t(
-        "Items:\n"
+    llm::Template tmpl(
+        "Analyze the following items:\n"
         "{{#items}}"
-        "  - {{name}}: {{price}}\n"
+        "- {{name}} (category: {{category}}, score: {{score}})\n"
         "{{/items}}"
-        "{{#premium}}"
-        "  [Premium Account]\n"
-        "{{/premium}}"
+        "\nProvide a summary."
     );
 
     llm::TemplateContext ctx;
     ctx.lists["items"] = {
-        {{"name", "Apple"},  {"price", "$1.00"}},
-        {{"name", "Banana"}, {"price", "$0.50"}},
-        {{"name", "Cherry"}, {"price", "$3.00"}},
+        {{"name","Apple"},   {"category","fruit"},    {"score","9.2"}},
+        {{"name","Carrot"},  {"category","vegetable"}, {"score","8.7"}},
+        {{"name","Chicken"}, {"category","protein"},   {"score","8.5"}},
     };
-    ctx.flags["premium"] = true;
 
-    std::cout << t.render(ctx);
+    std::cout << tmpl.render(ctx) << "\n";
     return 0;
 }
